@@ -1,34 +1,1451 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { AppProvider, useApp } from '../lib/context'
-import { Plane, Plus, X, Check, AlertTriangle, Bell, FileText, ShieldCheck, LayoutDashboard, Users, CalendarDays } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from "react";
+import { AppProvider, useApp } from "../lib/state/context";
+import {
+  Plane,
+  Plus,
+  X,
+  Check,
+  AlertTriangle,
+  Bell,
+  FileText,
+  ShieldCheck,
+  LayoutDashboard,
+  Users,
+  CalendarDays,
+} from "lucide-react";
+import {
+  Metric,
+  MissionCard,
+  Empty,
+} from "./components/dashboard/DashboardPrimitives";
+import { Modal, PilotForm, CredentialForm } from "./components/forms/Forms";
 
-const tabs = ['Overview', 'Missions', 'Pilots', 'Documents']
-const dateText = (value) => value ? new Date(value).toLocaleString() : 'Not recorded'
+const tabs = ["Overview", "Missions", "Pilots", "Documents"];
+const dateText = (value) =>
+  value ? new Date(value).toLocaleString() : "Not recorded";
 
-function App() { return <AppProvider><AirSpot /></AppProvider> }
-function AirSpot() { const [showDemo, setShowDemo] = useState(false); return showDemo ? <SkyDesk onBack={() => setShowDemo(false)} /> : <LandingPage onDemo={() => setShowDemo(true)} /> }
-function LandingPage({ onDemo }) { const [form, setForm] = useState({ name: '', organization: '', email: '', role: '', interest: 'Pilot program', consent: false }); const [submitted, setSubmitted] = useState(false); const [error, setError] = useState(''); const submit = (event) => { event.preventDefault(); setError(''); if (!form.name || !form.organization || !form.email || !form.role) { setError('Complete all required fields before requesting access.'); return } if (!form.email.includes('@')) { setError('Enter a valid work email.'); return } setSubmitted(true) }; return <main className="landing-page"><nav className="landing-nav"><a className="brand landing-brand" href="#top"><span className="brand-mark"><Plane /></span>Air Spot</a><div className="landing-links"><a href="#how-it-works">How it works</a><a href="#concierge">Early access program</a><a href="#faq">FAQ</a><button className="secondary-button" onClick={onDemo}>Open workspace</button></div></nav><section className="landing-hero" id="top"><div className="hero-copy"><p className="eyebrow">Mission coordination for commercial drone teams</p><h1>Stop chasing updates.<br /><span>Start flying with clarity.</span></h1><p className="hero-lede">Air Spot helps commercial drone coordinators see what&apos;s blocking each mission and who needs to act.</p><div className="hero-actions"><button className="primary-button" onClick={() => document.getElementById('signup')?.scrollIntoView({ behavior: 'smooth' })}>Request early access</button><button className="text-button" onClick={onDemo}>Explore the demo <span>→</span></button></div><p className="trust-line">Built for organizations coordinating pilots, aircraft, documents, requirements, and mission readiness.</p><div className="credibility-line"><span>Designed for real operations workflows</span><span>Built with explicit compliance boundaries</span></div></div><div className="hero-visual"><div className="radar-grid"></div><div className="radar-scan"></div><div className="hero-console"><div className="console-top"><span>MISSION CONTROL</span><span className="live-indicator"><i></i> LIVE WORKSPACE</span></div><div className="console-title"><span>Roof inspection · Tomorrow 09:00</span><span className="status-pill status-warning">2 blockers</span></div><div className="console-blocker"><AlertTriangle /><div><strong>Pilot acceptance pending</strong><small>Owner: Radu Ionescu · Respond by 18:00</small></div><span>→</span></div><div className="console-blocker amber"><FileText /><div><strong>Credential expires before mission</strong><small>Owner: Coordinator · Update record</small></div><span>→</span></div><div className="console-footer"><span>Readiness</span><strong>Not ready</strong><span className="footer-dot"></span></div></div></div></section><section className="proof-strip"><div><strong>One view.</strong><span>Every mission, pilot, aircraft, and requirement in context.</span></div><div><strong>Clear owners.</strong><span>Every blocker comes with a next action.</span></div><div><strong>Honest readiness.</strong><span>Internal confirmation, never a claim of legal permission.</span></div></section><section className="investor-strip"><div><p className="eyebrow">The opportunity</p><h2>Mission readiness is an operations problem.</h2><p>Commercial drone teams are scaling into more inspections, surveys, and infrastructure work. Coordination complexity grows before flight volume does.</p></div><div className="investor-points"><article><strong>Clear buyer</strong><span>Operations coordinators and fleet leads at commercial drone organizations.</span></article><article><strong>Recurring workflow</strong><span>Every mission creates a repeatable preparation, evidence, and review cycle.</span></article><article><strong>Expansion path</strong><span>Start with readiness, then connect documents, approvals, clients, and fleet data.</span></article></div></section><section className="landing-section" id="how-it-works"><div className="section-intro"><p className="eyebrow">How it works</p><h2>From scattered updates<br />to one clear mission view.</h2></div><div className="steps-grid"><article><span>01</span><h3>See the mission</h3><p>Keep client, location, crew, aircraft, records, and requirements together.</p></article><article><span>02</span><h3>Find the blocker</h3><p>Air Spot derives what is preventing readiness and who owns the next move.</p></article><article><span>03</span><h3>Move it forward</h3><p>Resolve issues, capture decisions, and confirm internal readiness with a clear trail.</p></article></div></section><section className="landing-section business-section"><div className="section-intro"><p className="eyebrow">A focused path to value</p><h2>Sell fewer surprises per mission.</h2><p>Air Spot is designed as a B2B SaaS workspace: priced around active operations teams, with higher-value tiers for fleet scale, audit history, integrations, and advanced evidence workflows.</p></div><div className="business-grid"><article><span>01</span><h3>Land with coordination</h3><p>Replace scattered messages and spreadsheets with one mission record.</p></article><article><span>02</span><h3>Expand through trust</h3><p>Make every decision, blocker, document, and owner visible to the team.</p></article><article><span>03</span><h3>Build the system of record</h3><p>Connect readiness data to customers, authorities, fleet systems, and reporting.</p></article></div></section><section className="landing-section split-section" id="concierge"><div><p className="eyebrow">Early access program</p><h2>Start with your real operation.</h2><p>We are working with a small number of commercial drone teams to map the coordination workflow before building for scale.</p><button className="text-button" onClick={() => document.getElementById('signup')?.scrollIntoView({ behavior: 'smooth' })}>Join the pilot program <span>→</span></button></div><div className="quote-card"><span className="quote-mark">“</span><p>The work is not flying the drone. It&apos;s making sure every dependency is visible before the crew leaves the ground.</p><small>— Air Spot product principle</small></div></section><section className="landing-section signup-section" id="signup"><div className="signup-copy"><p className="eyebrow">Request early access</p><h2>Make your next mission easier to coordinate.</h2><p>Tell us a little about your operation. We&apos;ll use it to shape the concierge pilot.</p></div>{submitted ? <div className="success-card"><Check /><h3>Request captured for this prototype</h3><p>Your interest is recorded in this browser only. A connected lead inbox is not configured yet.</p></div> : <form className="signup-form" onSubmit={submit} noValidate><label>Name<input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /></label><label>Organization<input value={form.organization} onChange={(e) => setForm({ ...form, organization: e.target.value })} required /></label><label>Work email<input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required /></label><label>Role<select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} required><option value="">Select role</option><option>Operations coordinator</option><option>Chief pilot</option><option>Founder / owner</option><option>Other</option></select></label><label>What are you interested in?<select value={form.interest} onChange={(e) => setForm({ ...form, interest: e.target.value })}><option>Pilot program</option><option>Product updates</option><option>Partnership</option></select></label><label className="consent-row"><input type="checkbox" checked={form.consent} onChange={(e) => setForm({ ...form, consent: e.target.checked })} />I&apos;m happy to receive occasional product updates.</label>{error && <p className="form-error" role="alert">{error}</p>}<button className="primary-button" type="submit">Request access <span>→</span></button><small>By submitting, you agree that this prototype stores the request locally in your browser. No email is sent.</small></form>}</section><section className="landing-section faq-section" id="faq"><div className="section-intro"><p className="eyebrow">FAQ</p><h2>Clear answers, no inflated claims.</h2></div><div className="faq-list"><details open><summary>What does Air Spot do?</summary><p>Air Spot gives commercial drone coordinators one place to see mission blockers, responsible owners, and next actions.</p></details><details><summary>Is this production software?</summary><p>No. This event version is a frontend prototype with local browser persistence, demo role switching, and metadata-only document records.</p></details><details><summary>Does readiness mean permission to fly?</summary><p>No. Readiness is an internal operational confirmation. Official permissions, authority decisions, and current NOTAM review remain outside this prototype.</p></details></div></section><footer className="landing-footer"><div className="brand landing-brand"><span className="brand-mark"><Plane /></span>Air Spot</div><p>Mission coordination workspace for commercial drone operations teams.</p><button className="text-button" onClick={onDemo}>Open operations workspace →</button></footer></main> }
-function SkyDesk({ onBack }) {
-  const { pilots, drones, missions, recentActivity, notifications, addPilot, createMission, respondToAssignment, reassignMission, sendReminder, addCredential, addDocument, removeDocument, addAuthorization, updateAuthorization, addIncident, submitPostflight, closeMission, setReadiness, deriveBlockers, patchMission } = useApp()
-  const [tab, setTab] = useState('Overview'); const [role, setRole] = useState('coordinator'); const [pilotId, setPilotId] = useState(pilots[0]?.id || ''); const [selected, setSelected] = useState(null); const [modal, setModal] = useState(null); const [notice, setNotice] = useState('')
-  const notify = (message) => { setNotice(message); setTimeout(() => setNotice(''), 3000) }
-  const pilot = pilots.find((p) => p.id === pilotId)
-  const visibleMissions = role === 'pilot' ? missions.filter((m) => m.assignedPilotId === pilotId) : missions
-  const open = (mission) => setSelected(mission.id)
-  const selectedMission = missions.find((m) => m.id === selected)
-  return <div className="app-shell"><aside className="sidebar"><div className="brand"><span className="brand-mark"><Plane /></span>Air Spot</div><div className="workspace-label">WORKSPACE</div><button className="role-switcher" onClick={() => setRole(role === 'coordinator' ? 'pilot' : 'coordinator')}><span className="role-avatar">{role === 'coordinator' ? 'C' : 'P'}</span><span><strong>{role === 'coordinator' ? 'Flight Operations' : pilot?.name}</strong><small>{role === 'coordinator' ? 'Coordinator' : 'Pilot demo view'}</small></span></button>{role === 'pilot' && <select className="pilot-select" value={pilotId} onChange={(e) => setPilotId(e.target.value)} aria-label="Select demo pilot">{pilots.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</select>}<small className="prototype-note">Role switching is a demo feature, not secure authentication.</small><nav>{tabs.map((item) => <button key={item} className={`nav-item ${tab === item ? 'nav-item-active' : ''}`} onClick={() => setTab(item)}>{item === 'Overview' ? <LayoutDashboard /> : item === 'Missions' ? <CalendarDays /> : item === 'Pilots' ? <Users /> : <FileText />}<span>{item}</span></button>)}</nav><div className="sidebar-bottom">● System operational</div></aside><main className="main-content"><header className="topbar"><div>{onBack && <button className="back-to-landing" onClick={onBack}>← Air Spot home</button>}<p className="eyebrow">{role === 'coordinator' ? 'Coordinator workspace' : 'Pilot workspace'}</p><h1>{role === 'pilot' ? `Assignments for ${pilot?.name || 'pilot'}` : 'Good morning, coordinator'}</h1><p className="app-subtitle">Mission coordination and readiness for commercial drone teams.</p></div><div className="top-actions"><span className="notification-count"><Bell /> {notifications.length}</span>{role === 'coordinator' && <button className="primary-button" onClick={() => setModal('mission')}><Plus /> New mission</button>}</div></header>{notice && <div className="toast" role="status">{notice}</div>}{tab === 'Overview' && <Overview missions={visibleMissions} allMissions={missions} pilots={pilots} drones={drones} role={role} deriveBlockers={deriveBlockers} onOpen={open} onReminder={(id) => { sendReminder(id); notify('In-app reminder recorded. No email or SMS was sent.') }} />}{tab === 'Missions' && <MissionList missions={visibleMissions} pilots={pilots} drones={drones} role={role} deriveBlockers={deriveBlockers} onOpen={open} onRespond={(id, response, reason) => { const r = respondToAssignment(id, pilotId, response, reason); notify(r?.error || `Assignment ${response}.`) }} onReminder={(id) => { sendReminder(id); notify('In-app reminder recorded.') }} />}{tab === 'Pilots' && role === 'coordinator' && <PilotList pilots={pilots} onAdd={() => setModal('pilot')} onCredential={(id) => setModal({ type: 'credential', pilotId: id })} />}{tab === 'Documents' && <Documents missions={missions} onOpen={open} />}{selectedMission && <MissionPanel mission={selectedMission} role={role} pilots={pilots} drones={drones} blockers={deriveBlockers(selectedMission)} onClose={() => setSelected(null)} onPatch={patchMission} onDocument={addDocument} onRemoveDocument={removeDocument} onAuthorization={addAuthorization} onUpdateAuthorization={updateAuthorization} onIncident={addIncident} onPostflight={submitPostflight} onCloseMission={closeMission} onReadiness={setReadiness} notify={notify} />}{modal === 'pilot' && <PilotForm onClose={() => setModal(null)} onSave={(input) => { const r = addPilot(input); if (r.error) return r.error; setModal(null); notify('Pilot created successfully and is available for assignment.') }} />}{modal === 'mission' && <MissionForm pilots={pilots} drones={drones} onClose={() => setModal(null)} onSave={(input) => { const r = createMission(input); if (r.error) return r.error; setModal(null); notify('Mission created; assignment is awaiting pilot response.') }} />}{modal?.type === 'credential' && <CredentialForm pilotId={modal.pilotId} onClose={() => setModal(null)} onSave={(input) => { addCredential(modal.pilotId, input); setModal(null); notify('Credential recorded.') }} />}</main></div>
+function App() {
+  return (
+    <AppProvider>
+      <AirSpot />
+    </AppProvider>
+  );
 }
-function Overview({ missions, allMissions, pilots, drones, role, deriveBlockers, onOpen, onReminder }) { const queues = allMissions.flatMap((m) => deriveBlockers(m).map((b) => ({ ...b, mission: m }))); const pending = allMissions.filter((m) => m.assignmentStatus === 'Awaiting Acceptance'); const expiring = pilots.flatMap((p) => [...(p.certificates || []), ...(p.insurance || [])].filter((c) => c.expiryDate && (new Date(c.expiryDate) - new Date()) / 86400000 <= 30).map((c) => `${p.name}: ${c.name || c.provider || 'record'} expires ${c.expiryDate}`)); return <section className="section-view"><div className="metric-grid"><Metric label="Active missions" value={missions.filter((m) => !['Closed', 'Flown'].includes(m.status)).length} /><Metric label="Awaiting response" value={pending.length} /><Metric label="Blocking items" value={queues.filter((b) => b.severity === 'blocking').length} /><Metric label="Expiring records" value={expiring.length} /></div><div className="content-grid"><section className="card table-card"><div className="table-header"><div><h2>{role === 'pilot' ? 'Your assignments' : 'Operational queue'}</h2><span>Derived from shared mission state</span></div></div>{missions.length === 0 ? <Empty text="No missions yet." /> : missions.map((m) => <MissionCard key={m.id} mission={m} blockers={deriveBlockers(m)} onOpen={onOpen} />)}</section><aside className="right-column"><section className="card attention-card"><h2>Actionable blockers</h2>{queues.slice(0, 8).map((b) => <button className="attention-item" key={`${b.mission.id}-${b.id}`} onClick={() => onOpen(b.mission)}><AlertTriangle /><span><strong>{b.description}</strong><small>{b.mission.title} · Owner: {b.owner}</small></span></button>)}{queues.length === 0 && <Empty text="No blockers." />}</section><section className="card attention-card"><h2>Awaiting response</h2>{pending.map((m) => <div className="attention-item" key={m.id}><span><strong>{m.title}</strong><small>{m.responseDeadline ? `Deadline ${dateText(m.responseDeadline)}` : 'No deadline'}</small></span><button onClick={() => onReminder(m.id)}>Send reminder</button></div>)}{pending.length === 0 && <Empty text="No pending responses." />}</section></aside></div></section> }
-function Metric({ label, value }) { return <div className="metric-card"><p>{label}</p><strong>{value}</strong><small>Live shared state</small></div> }
-function MissionCard({ mission, blockers, onOpen }) { return <button className="mission-row" onClick={() => onOpen(mission)}><div className="mission-info"><strong>{mission.title}</strong><span>{mission.client} · {mission.location} · {mission.date} {mission.startTime || mission.time || ''}</span></div><span className={`status-pill ${blockers.length ? 'status-warning' : 'status-success'}`}>{blockers.length ? `${blockers.length} blocker${blockers.length > 1 ? 's' : ''}` : mission.status}</span><span className="mission-open-label">Open mission workspace →</span></button> }
-function MissionList({ missions, pilots, drones, role, deriveBlockers, onOpen, onRespond, onReminder }) { return <section className="section-view"><div className="card table-card"><div className="table-header"><div><h2>Missions</h2><span>{missions.length} records · {role === 'pilot' ? 'filtered to your assignments' : 'coordinator view'}</span></div></div>{missions.map((m) => <div className="table-row" key={m.id}><div><strong>{m.title}</strong><small>{m.location} · {m.date} · Pilot: {pilots.find((p) => p.id === m.assignedPilotId)?.name || 'Unassigned'} · Drone: {drones.find((d) => d.id === m.droneId)?.model || 'Unassigned'}</small><small>Assignment: {m.assignmentStatus} · {deriveBlockers(m).length} blockers</small></div><div className="row-buttons"><button onClick={() => onOpen(m)}>Open record</button>{role === 'pilot' && m.assignmentStatus === 'Awaiting Acceptance' && <><button className="primary-button" onClick={() => onRespond(m.id, 'accepted')}>Accept</button><button onClick={() => onRespond(m.id, 'declined', 'Operational conflict')}>Decline</button></>}{role === 'coordinator' && m.assignmentStatus === 'Awaiting Acceptance' && <button onClick={() => onReminder(m.id)}>Remind</button>}</div></div>)}{missions.length === 0 && <Empty text="No assignments found." />}</div></section> }
-function PilotList({ pilots, onAdd, onCredential }) { return <section className="section-view"><div className="card table-card"><div className="table-header"><div><h2>Pilots</h2><span>{pilots.length} registered pilots</span></div><button className="primary-button" onClick={onAdd}><Plus /> Add pilot</button></div>{pilots.map((p) => <div className="table-row" key={p.id}><div><strong>{p.name}</strong><small>{p.email} · ID {p.id}</small></div><span className="status-pill status-neutral">{p.approvalStatus}</span><button onClick={() => onCredential(p.id)}>Record credential</button></div>)}</div></section> }
-function Documents({ missions, onOpen }) { return <section className="section-view"><div className="card table-card"><div className="table-header"><div><h2>Mission documents</h2><span>Metadata-only prototype attachments</span></div></div>{missions.flatMap((m) => (m.documents || []).map((d) => <button className="table-row" key={d.id} onClick={() => onOpen(m)}><span><FileText /> {d.filename}</span><small>{m.title} · {d.documentType} · {d.uploader}</small></button>))}{missions.every((m) => !m.documents?.length) && <Empty text="No document metadata has been added." />}</div></section> }
-function Empty({ text }) { return <div className="empty-state">{text}</div> }
-function Modal({ title, children, onClose }) { return <div className="modal-backdrop"><div className="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><div className="modal-heading"><h2 id="modal-title">{title}</h2><button className="icon-button" onClick={onClose} aria-label="Close"><X /></button></div>{children}</div></div> }
-function PilotForm({ onClose, onSave }) { const [form, setForm] = useState({ name: '', email: '', availability: 'Available' }); const [error, setError] = useState(''); const submit = (e) => { e.preventDefault(); const result = onSave(form); if (result) setError(result) }; return <Modal title="Add pilot" onClose={onClose}><form onSubmit={submit} className="form-grid"><label>Name<input autoFocus value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /><small>Required</small></label><label>Email<input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /><small>Must be unique, case-insensitive</small></label><label>Availability<select value={form.availability} onChange={(e) => setForm({ ...form, availability: e.target.value })}><option>Available</option><option>Unavailable</option><option>On mission</option></select></label>{error && <div className="form-error" role="alert">{error}</div>}<div className="modal-actions"><button type="button" onClick={onClose}>Cancel</button><button className="primary-button">Save pilot</button></div></form></Modal> }
-  function ZoneReview({ mission, onCheck, onNotify }) { const [latitude, setLatitude] = useState(mission.zoneCheck?.latitude ?? ''); const [longitude, setLongitude] = useState(mission.zoneCheck?.longitude ?? ''); const [loading, setLoading] = useState(false); const [error, setError] = useState(''); const result = mission.zoneCheck; async function submit(e) { e.preventDefault(); setError(''); setLoading(true); const response = await onCheck(mission.id, latitude, longitude); setLoading(false); if (response?.error && !response.result) setError(response.error); else onNotify(response?.result?.message || 'Zone check recorded.'); } return <section className="zone-review detail-section"><div className="detail-section-heading"><strong>Romanian airspace review</strong><small>Published snapshot point check only — not live data, not complete coverage, and never a clearance to fly.</small></div><form className="detail-form zone-form" onSubmit={submit}><label>Latitude<input inputMode="decimal" aria-label="Mission latitude" value={latitude} onChange={(e) => setLatitude(e.target.value)} placeholder="44.4268" required /></label><label>Longitude<input inputMode="decimal" aria-label="Mission longitude" value={longitude} onChange={(e) => setLongitude(e.target.value)} placeholder="26.1025" required /></label><button className="secondary-button" type="submit" disabled={loading}>{loading ? 'Checking…' : 'Check published zones'}</button></form>{error && <p className="form-error">{error}</p>}{result && <div className={`zone-result zone-${result.status}`}><strong>{result.message}</strong>{result.status === 'overlap' && result.matches?.map((zone) => <div className="zone-match" key={zone.id}><b>{zone.id}</b><span>{zone.status} · {zone.lowerLimit} to {zone.upperLimit}</span><small>{zone.contact}</small></div>)}<small>Point check at {result.latitude ?? 'not recorded'}, {result.longitude ?? 'not recorded'}. Snapshot imported {result.importedAt ? new Date(result.importedAt).toLocaleString() : 'date unavailable'}.</small><a href={result.mapUrl || 'https://flightplan.romatsa.ro/init/drones'} target="_blank" rel="noreferrer">Open official ROMATSA map</a></div>}</section> }
-  function MissionForm({ pilots, drones, onClose, onSave }) { const [form, setForm] = useState({ title: '', client: '', location: '', date: '', startTime: '', endTime: '', assignedPilotId: pilots[0]?.id || '', droneId: drones[0]?.id || '', requirementsAssessment: 'Not assessed' }); const [error, setError] = useState(''); const set = (key) => (e) => setForm({ ...form, [key]: e.target.value }); const submit = (e, saveDraft = false) => { e.preventDefault(); const result = onSave({ ...form, saveDraft }); if (result?.error) setError(result.error) }; return <Modal title="Create mission" onClose={onClose}><form onSubmit={submit} className="form-grid">{[['title','Mission title'],['client','Client'],['location','Location'],['date','Date'],['startTime','Start time'],['endTime','End time']].map(([key,label]) => <label key={key}>{label}<input type={key === 'date' ? 'date' : key.includes('Time') ? 'time' : 'text'} value={form[key]} onChange={set(key)} /></label>)}<label>Pilot<select value={form.assignedPilotId} onChange={set('assignedPilotId')}>{pilots.map((p) => <option key={p.id} value={p.id}>{p.name} · {p.availability}</option>)}</select></label><label>Drone<select value={form.droneId} onChange={set('droneId')}>{drones.map((d) => <option key={d.id} value={d.id}>{d.model}</option>)}</select></label><label>External requirement<select value={form.requirementsAssessment} onChange={set('requirementsAssessment')}><option>Not assessed</option><option>Not applicable</option><option>Assessed</option></select></label>{error && <div className="form-error" role="alert">{error}</div>}<div className="modal-actions"><button type="button" onClick={onClose}>Cancel</button><button type="button" onClick={(e) => submit(e, true)}>Save draft</button><button className="primary-button">Create mission</button></div></form></Modal> }
-function CredentialForm({ pilotId, onClose, onSave }) { const [form, setForm] = useState({ kind: 'certificate', name: '', expiryDate: '' }); return <Modal title="Record credential" onClose={onClose}><form className="form-grid" onSubmit={(e) => { e.preventDefault(); onSave(form) }}><label>Record type<select value={form.kind} onChange={(e) => setForm({ ...form, kind: e.target.value })}><option value="certificate">Credential</option><option value="insurance">Insurance</option></select></label><label>Name or provider<input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></label><label>Expiry date<input type="date" value={form.expiryDate} onChange={(e) => setForm({ ...form, expiryDate: e.target.value })} /><small>Leave blank to keep it visibly unassessed.</small></label><div className="modal-actions"><button type="button" onClick={onClose}>Cancel</button><button className="primary-button">Save record</button></div></form></Modal> }
-function MissionPanel({ mission, role, pilots, drones, blockers, onClose, onPatch, onDocument, onRemoveDocument, onAuthorization, onUpdateAuthorization, onIncident, onPostflight, onCloseMission, onReadiness, notify }) { const { checkMissionZone } = useApp(); const panelRef = useRef(null); useEffect(() => { panelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, [mission.id]); const [doc, setDoc] = useState({ documentType: 'Evidence', filename: '' }); const [auth, setAuth] = useState({ authority: '', requirement: '', status: 'Pending', evidenceFilename: '', conditions: '', simulated: false }); const [report, setReport] = useState(''); const pilot = pilots.find((p) => p.id === mission.assignedPilotId); const drone = drones.find((d) => d.id === mission.droneId); return <div className="detail-panel" ref={panelRef}><div className="detail-heading"><div><p className="eyebrow">Central mission record</p><h2>{mission.title}</h2><p>{mission.client} · {mission.location} · {mission.date} · {mission.startTime || mission.time || ''}</p></div><button className="icon-button" onClick={onClose} aria-label="Close mission record"><X /></button></div><ZoneReview mission={mission} onCheck={checkMissionZone} onNotify={notify} /><div className="detail-grid"><section><h3>Assignment</h3><p>Pilot: {pilot?.name || 'Unassigned'}</p><p>Drone: {drone?.model || 'Unassigned'}</p><p>Status: {mission.assignmentStatus}</p><p>Deadline: {dateText(mission.responseDeadline)}</p></section><section><h3>Readiness</h3>{blockers.map((b) => <div className={`blocker ${b.severity}`} key={b.id}><AlertTriangle /> <span>{b.description}<small>Owner: {b.owner}</small></span></div>)}{!blockers.length && <p className="success-copy"><Check /> No derived blockers</p>}<label className="check-row"><input type="checkbox" checked={mission.readinessChecks?.preflight || false} onChange={(e) => onPatch(mission.id, { readinessChecks: { ...mission.readinessChecks, preflight: e.target.checked } }, 'Preflight check updated', role === 'pilot' ? pilot?.name : 'Coordinator')} /> Preflight check complete</label><button className="primary-button" disabled={blockers.some((b) => b.severity === 'blocking')} onClick={() => { const r = onReadiness(mission.id, role === 'pilot' ? pilot?.name : 'Coordinator'); notify(r?.error || 'Readiness confirmed.') }}>Confirm internal readiness</button>{mission.readinessConfirmation && <p className="success-copy">Confirmed by {mission.readinessConfirmation.actor} at {dateText(mission.readinessConfirmation.timestamp)}</p>}</section></div><section className="detail-section"><h3>Documents</h3><small>Metadata-only placeholders. File contents are not stored or claimed persistent.</small>{(mission.documents || []).map((d) => <div className="detail-item" key={d.id}><span>{d.documentType} · {d.filename}</span><button onClick={() => onRemoveDocument(mission.id, d.id)}>Remove</button></div>)}<form className="inline-form" onSubmit={(e) => { e.preventDefault(); onDocument(mission.id, doc); setDoc({ documentType: 'Evidence', filename: '' }); notify('Document metadata added.') }}><select value={doc.documentType} onChange={(e) => setDoc({ ...doc, documentType: e.target.value })}><option>Evidence</option><option>Brief</option><option>Insurance</option><option>Other</option></select><input required placeholder="Filename or reference" value={doc.filename} onChange={(e) => setDoc({ ...doc, filename: e.target.value })} /><button>Add</button></form></section><section className="detail-section"><h3>External authorizations</h3><small>Authority simulation is clearly non-official and cannot satisfy evidence requirements.</small>{(mission.authorizations || []).map((a) => <div className="detail-item" key={a.id}><span>{a.authority || 'Authority'} · {a.status}{a.simulated ? ' · SIMULATED' : ''}</span><div><button onClick={() => onUpdateAuthorization(mission.id, a.id, { conditionsAcknowledgedByCoordinator: true }, 'Coordinator')}>Coordinator acknowledged</button>{role === 'pilot' && <button onClick={() => onUpdateAuthorization(mission.id, a.id, { conditionsAcknowledgedByPilot: true }, pilot?.name)}>Pilot acknowledged</button>}</div></div>)}<form className="form-grid compact" onSubmit={(e) => { e.preventDefault(); onAuthorization(mission.id, auth); setAuth({ authority: '', requirement: '', status: 'Pending', evidenceFilename: '', conditions: '', simulated: false }); notify('Authorization record added.') }}><input required placeholder="Authority / organization" value={auth.authority} onChange={(e) => setAuth({ ...auth, authority: e.target.value })} /><input placeholder="Evidence filename" value={auth.evidenceFilename} onChange={(e) => setAuth({ ...auth, evidenceFilename: e.target.value })} /><select value={auth.status} onChange={(e) => setAuth({ ...auth, status: e.target.value })}><option>Pending</option><option>Approved</option><option>Rejected</option><option>More Information Required</option></select><label className="check-row"><input type="checkbox" checked={auth.simulated} onChange={(e) => setAuth({ ...auth, simulated: e.target.checked })} /> Simulation only</label><button className="secondary-button">Add authorization</button></form></section><section className="detail-section"><h3>Postflight and incidents</h3>{mission.postflightReport ? <p className="success-copy">Report submitted {dateText(mission.postflightReport.submittedAt)} · {mission.status}</p> : <form className="inline-form" onSubmit={(e) => { e.preventDefault(); onPostflight(mission.id, { summary: report }, role === 'pilot' ? pilot?.name : 'Coordinator'); notify('Postflight report submitted.') }}><input required placeholder="Flight completion summary" value={report} onChange={(e) => setReport(e.target.value)} /><button>Submit report</button></form>}{mission.incidents?.map((i) => <p key={i.id}>Incident: {i.description}</p>)}{role === 'pilot' && <button onClick={() => onIncident(mission.id, { description: 'Operational incident recorded by pilot' }, pilot?.name)}>Report incident</button>}{role === 'coordinator' && mission.postflightReport && <button className="primary-button" onClick={() => { onCloseMission(mission.id); notify('Mission closed.') }}>Close mission</button>}</section></div> }
-export default App
+function AirSpot() {
+  const [showDemo, setShowDemo] = useState(false);
+  return showDemo ? (
+    <SkyDesk onBack={() => setShowDemo(false)} />
+  ) : (
+    <LandingPage onDemo={() => setShowDemo(true)} />
+  );
+}
+function LandingPage({ onDemo }) {
+  const [form, setForm] = useState({
+    name: "",
+    organization: "",
+    email: "",
+    role: "",
+    interest: "Pilot program",
+    consent: false,
+  });
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState("");
+  const submit = (event) => {
+    event.preventDefault();
+    setError("");
+    if (!form.name || !form.organization || !form.email || !form.role) {
+      setError("Complete all required fields before requesting access.");
+      return;
+    }
+    if (!form.email.includes("@")) {
+      setError("Enter a valid work email.");
+      return;
+    }
+    setSubmitted(true);
+  };
+  return (
+    <main className="landing-page">
+      <nav className="landing-nav">
+        <a className="brand landing-brand" href="#top">
+          <span className="brand-mark">
+            <Plane />
+          </span>
+          Air Spot
+        </a>
+        <div className="landing-links">
+          <a href="#how-it-works">How it works</a>
+          <a href="#concierge">Early access program</a>
+          <a href="#faq">FAQ</a>
+          <button className="secondary-button" onClick={onDemo}>
+            Open workspace
+          </button>
+        </div>
+      </nav>
+      <section className="landing-hero" id="top">
+        <div className="hero-copy">
+          <p className="eyebrow">
+            Mission coordination for commercial drone teams
+          </p>
+          <h1>
+            Stop chasing updates.
+            <br />
+            <span>Start flying with clarity.</span>
+          </h1>
+          <p className="hero-lede">
+            Air Spot helps commercial drone coordinators see what&apos;s
+            blocking each mission and who needs to act.
+          </p>
+          <div className="hero-actions">
+            <button
+              className="primary-button"
+              onClick={() =>
+                document
+                  .getElementById("signup")
+                  ?.scrollIntoView({ behavior: "smooth" })
+              }
+            >
+              Request early access
+            </button>
+            <button className="text-button" onClick={onDemo}>
+              Explore the demo <span>→</span>
+            </button>
+          </div>
+          <p className="trust-line">
+            Built for organizations coordinating pilots, aircraft, documents,
+            requirements, and mission readiness.
+          </p>
+          <div className="credibility-line">
+            <span>Designed for real operations workflows</span>
+            <span>Built with explicit compliance boundaries</span>
+          </div>
+        </div>
+        <div className="hero-visual">
+          <div className="radar-grid"></div>
+          <div className="radar-scan"></div>
+          <div className="hero-console">
+            <div className="console-top">
+              <span>MISSION CONTROL</span>
+              <span className="live-indicator">
+                <i></i> LIVE WORKSPACE
+              </span>
+            </div>
+            <div className="console-title">
+              <span>Roof inspection · Tomorrow 09:00</span>
+              <span className="status-pill status-warning">2 blockers</span>
+            </div>
+            <div className="console-blocker">
+              <AlertTriangle />
+              <div>
+                <strong>Pilot acceptance pending</strong>
+                <small>Owner: Radu Ionescu · Respond by 18:00</small>
+              </div>
+              <span>→</span>
+            </div>
+            <div className="console-blocker amber">
+              <FileText />
+              <div>
+                <strong>Credential expires before mission</strong>
+                <small>Owner: Coordinator · Update record</small>
+              </div>
+              <span>→</span>
+            </div>
+            <div className="console-footer">
+              <span>Readiness</span>
+              <strong>Not ready</strong>
+              <span className="footer-dot"></span>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section className="proof-strip">
+        <div>
+          <strong>One view.</strong>
+          <span>
+            Every mission, pilot, aircraft, and requirement in context.
+          </span>
+        </div>
+        <div>
+          <strong>Clear owners.</strong>
+          <span>Every blocker comes with a next action.</span>
+        </div>
+        <div>
+          <strong>Honest readiness.</strong>
+          <span>Internal confirmation, never a claim of legal permission.</span>
+        </div>
+      </section>
+      <section className="investor-strip">
+        <div>
+          <p className="eyebrow">The opportunity</p>
+          <h2>Mission readiness is an operations problem.</h2>
+          <p>
+            Commercial drone teams are scaling into more inspections, surveys,
+            and infrastructure work. Coordination complexity grows before flight
+            volume does.
+          </p>
+        </div>
+        <div className="investor-points">
+          <article>
+            <strong>Clear buyer</strong>
+            <span>
+              Operations coordinators and fleet leads at commercial drone
+              organizations.
+            </span>
+          </article>
+          <article>
+            <strong>Recurring workflow</strong>
+            <span>
+              Every mission creates a repeatable preparation, evidence, and
+              review cycle.
+            </span>
+          </article>
+          <article>
+            <strong>Expansion path</strong>
+            <span>
+              Start with readiness, then connect documents, approvals, clients,
+              and fleet data.
+            </span>
+          </article>
+        </div>
+      </section>
+      <section className="landing-section" id="how-it-works">
+        <div className="section-intro">
+          <p className="eyebrow">How it works</p>
+          <h2>
+            From scattered updates
+            <br />
+            to one clear mission view.
+          </h2>
+        </div>
+        <div className="steps-grid">
+          <article>
+            <span>01</span>
+            <h3>See the mission</h3>
+            <p>
+              Keep client, location, crew, aircraft, records, and requirements
+              together.
+            </p>
+          </article>
+          <article>
+            <span>02</span>
+            <h3>Find the blocker</h3>
+            <p>
+              Air Spot derives what is preventing readiness and who owns the
+              next move.
+            </p>
+          </article>
+          <article>
+            <span>03</span>
+            <h3>Move it forward</h3>
+            <p>
+              Resolve issues, capture decisions, and confirm internal readiness
+              with a clear trail.
+            </p>
+          </article>
+        </div>
+      </section>
+      <section className="landing-section business-section">
+        <div className="section-intro">
+          <p className="eyebrow">A focused path to value</p>
+          <h2>Sell fewer surprises per mission.</h2>
+          <p>
+            Air Spot is designed as a B2B SaaS workspace: priced around active
+            operations teams, with higher-value tiers for fleet scale, audit
+            history, integrations, and advanced evidence workflows.
+          </p>
+        </div>
+        <div className="business-grid">
+          <article>
+            <span>01</span>
+            <h3>Land with coordination</h3>
+            <p>
+              Replace scattered messages and spreadsheets with one mission
+              record.
+            </p>
+          </article>
+          <article>
+            <span>02</span>
+            <h3>Expand through trust</h3>
+            <p>
+              Make every decision, blocker, document, and owner visible to the
+              team.
+            </p>
+          </article>
+          <article>
+            <span>03</span>
+            <h3>Build the system of record</h3>
+            <p>
+              Connect readiness data to customers, authorities, fleet systems,
+              and reporting.
+            </p>
+          </article>
+        </div>
+      </section>
+      <section className="landing-section split-section" id="concierge">
+        <div>
+          <p className="eyebrow">Early access program</p>
+          <h2>Start with your real operation.</h2>
+          <p>
+            We are working with a small number of commercial drone teams to map
+            the coordination workflow before building for scale.
+          </p>
+          <button
+            className="text-button"
+            onClick={() =>
+              document
+                .getElementById("signup")
+                ?.scrollIntoView({ behavior: "smooth" })
+            }
+          >
+            Join the pilot program <span>→</span>
+          </button>
+        </div>
+        <div className="quote-card">
+          <span className="quote-mark">“</span>
+          <p>
+            The work is not flying the drone. It&apos;s making sure every
+            dependency is visible before the crew leaves the ground.
+          </p>
+          <small>— Air Spot product principle</small>
+        </div>
+      </section>
+      <section className="landing-section signup-section" id="signup">
+        <div className="signup-copy">
+          <p className="eyebrow">Request early access</p>
+          <h2>Make your next mission easier to coordinate.</h2>
+          <p>
+            Tell us a little about your operation. We&apos;ll use it to shape
+            the concierge pilot.
+          </p>
+        </div>
+        {submitted ? (
+          <div className="success-card">
+            <Check />
+            <h3>Request captured for this prototype</h3>
+            <p>
+              Your interest is recorded in this browser only. A connected lead
+              inbox is not configured yet.
+            </p>
+          </div>
+        ) : (
+          <form className="signup-form" onSubmit={submit} noValidate>
+            <label>
+              Name
+              <input
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                required
+              />
+            </label>
+            <label>
+              Organization
+              <input
+                value={form.organization}
+                onChange={(e) =>
+                  setForm({ ...form, organization: e.target.value })
+                }
+                required
+              />
+            </label>
+            <label>
+              Work email
+              <input
+                type="email"
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                required
+              />
+            </label>
+            <label>
+              Role
+              <select
+                value={form.role}
+                onChange={(e) => setForm({ ...form, role: e.target.value })}
+                required
+              >
+                <option value="">Select role</option>
+                <option>Operations coordinator</option>
+                <option>Chief pilot</option>
+                <option>Founder / owner</option>
+                <option>Other</option>
+              </select>
+            </label>
+            <label>
+              What are you interested in?
+              <select
+                value={form.interest}
+                onChange={(e) => setForm({ ...form, interest: e.target.value })}
+              >
+                <option>Pilot program</option>
+                <option>Product updates</option>
+                <option>Partnership</option>
+              </select>
+            </label>
+            <label className="consent-row">
+              <input
+                type="checkbox"
+                checked={form.consent}
+                onChange={(e) =>
+                  setForm({ ...form, consent: e.target.checked })
+                }
+              />
+              I&apos;m happy to receive occasional product updates.
+            </label>
+            {error && (
+              <p className="form-error" role="alert">
+                {error}
+              </p>
+            )}
+            <button className="primary-button" type="submit">
+              Request access <span>→</span>
+            </button>
+            <small>
+              By submitting, you agree that this prototype stores the request
+              locally in your browser. No email is sent.
+            </small>
+          </form>
+        )}
+      </section>
+      <section className="landing-section faq-section" id="faq">
+        <div className="section-intro">
+          <p className="eyebrow">FAQ</p>
+          <h2>Clear answers, no inflated claims.</h2>
+        </div>
+        <div className="faq-list">
+          <details open>
+            <summary>What does Air Spot do?</summary>
+            <p>
+              Air Spot gives commercial drone coordinators one place to see
+              mission blockers, responsible owners, and next actions.
+            </p>
+          </details>
+          <details>
+            <summary>Is this production software?</summary>
+            <p>
+              No. This event version is a frontend prototype with local browser
+              persistence, demo role switching, and metadata-only document
+              records.
+            </p>
+          </details>
+          <details>
+            <summary>Does readiness mean permission to fly?</summary>
+            <p>
+              No. Readiness is an internal operational confirmation. Official
+              permissions, authority decisions, and current NOTAM review remain
+              outside this prototype.
+            </p>
+          </details>
+        </div>
+      </section>
+      <footer className="landing-footer">
+        <div className="brand landing-brand">
+          <span className="brand-mark">
+            <Plane />
+          </span>
+          Air Spot
+        </div>
+        <p>
+          Mission coordination workspace for commercial drone operations teams.
+        </p>
+        <button className="text-button" onClick={onDemo}>
+          Open operations workspace →
+        </button>
+      </footer>
+    </main>
+  );
+}
+function SkyDesk({ onBack }) {
+  const {
+    pilots,
+    drones,
+    missions,
+    recentActivity,
+    notifications,
+    addPilot,
+    createMission,
+    respondToAssignment,
+    reassignMission,
+    sendReminder,
+    addCredential,
+    addDocument,
+    removeDocument,
+    addAuthorization,
+    updateAuthorization,
+    addIncident,
+    submitPostflight,
+    closeMission,
+    setReadiness,
+    deriveBlockers,
+    patchMission,
+  } = useApp();
+  const [tab, setTab] = useState("Overview");
+  const [role, setRole] = useState("coordinator");
+  const [pilotId, setPilotId] = useState(pilots[0]?.id || "");
+  const [selected, setSelected] = useState(null);
+  const [modal, setModal] = useState(null);
+  const [notice, setNotice] = useState("");
+  const notify = (message) => {
+    setNotice(message);
+    setTimeout(() => setNotice(""), 3000);
+  };
+  const pilot = pilots.find((p) => p.id === pilotId);
+  const visibleMissions =
+    role === "pilot"
+      ? missions.filter((m) => m.assignedPilotId === pilotId)
+      : missions;
+  const open = (mission) => setSelected(mission.id);
+  const selectedMission = missions.find((m) => m.id === selected);
+  return (
+    <div className="app-shell">
+      <aside className="sidebar">
+        <div className="brand">
+          <span className="brand-mark">
+            <Plane />
+          </span>
+          Air Spot
+        </div>
+        <div className="workspace-label">WORKSPACE</div>
+        <button
+          className="role-switcher"
+          onClick={() =>
+            setRole(role === "coordinator" ? "pilot" : "coordinator")
+          }
+        >
+          <span className="role-avatar">
+            {role === "coordinator" ? "C" : "P"}
+          </span>
+          <span>
+            <strong>
+              {role === "coordinator" ? "Flight Operations" : pilot?.name}
+            </strong>
+            <small>
+              {role === "coordinator" ? "Coordinator" : "Pilot demo view"}
+            </small>
+          </span>
+        </button>
+        {role === "pilot" && (
+          <select
+            className="pilot-select"
+            value={pilotId}
+            onChange={(e) => setPilotId(e.target.value)}
+            aria-label="Select demo pilot"
+          >
+            {pilots.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </select>
+        )}
+        <small className="prototype-note">
+          Role switching is a demo feature, not secure authentication.
+        </small>
+        <nav>
+          {tabs.map((item) => (
+            <button
+              key={item}
+              className={`nav-item ${tab === item ? "nav-item-active" : ""}`}
+              onClick={() => setTab(item)}
+            >
+              {item === "Overview" ? (
+                <LayoutDashboard />
+              ) : item === "Missions" ? (
+                <CalendarDays />
+              ) : item === "Pilots" ? (
+                <Users />
+              ) : (
+                <FileText />
+              )}
+              <span>{item}</span>
+            </button>
+          ))}
+        </nav>
+        <div className="sidebar-bottom">● System operational</div>
+      </aside>
+      <main className="main-content">
+        <header className="topbar">
+          <div>
+            {onBack && (
+              <button className="back-to-landing" onClick={onBack}>
+                ← Air Spot home
+              </button>
+            )}
+            <p className="eyebrow">
+              {role === "coordinator"
+                ? "Coordinator workspace"
+                : "Pilot workspace"}
+            </p>
+            <h1>
+              {role === "pilot"
+                ? `Assignments for ${pilot?.name || "pilot"}`
+                : "Good morning, coordinator"}
+            </h1>
+            <p className="app-subtitle">
+              Mission coordination and readiness for commercial drone teams.
+            </p>
+          </div>
+          <div className="top-actions">
+            <span className="notification-count">
+              <Bell /> {notifications.length}
+            </span>
+            {role === "coordinator" && (
+              <button
+                className="primary-button"
+                onClick={() => setModal("mission")}
+              >
+                <Plus /> New mission
+              </button>
+            )}
+          </div>
+        </header>
+        {notice && (
+          <div className="toast" role="status">
+            {notice}
+          </div>
+        )}
+        {tab === "Overview" && (
+          <Overview
+            missions={visibleMissions}
+            allMissions={missions}
+            pilots={pilots}
+            drones={drones}
+            role={role}
+            deriveBlockers={deriveBlockers}
+            onOpen={open}
+            onReminder={(id) => {
+              sendReminder(id);
+              notify("In-app reminder recorded. No email or SMS was sent.");
+            }}
+          />
+        )}
+        {tab === "Missions" && (
+          <MissionList
+            missions={visibleMissions}
+            pilots={pilots}
+            drones={drones}
+            role={role}
+            deriveBlockers={deriveBlockers}
+            onOpen={open}
+            onRespond={(id, response, reason) => {
+              const r = respondToAssignment(id, pilotId, response, reason);
+              notify(r?.error || `Assignment ${response}.`);
+            }}
+            onReminder={(id) => {
+              sendReminder(id);
+              notify("In-app reminder recorded.");
+            }}
+          />
+        )}
+        {tab === "Pilots" && role === "coordinator" && (
+          <PilotList
+            pilots={pilots}
+            onAdd={() => setModal("pilot")}
+            onCredential={(id) => setModal({ type: "credential", pilotId: id })}
+          />
+        )}
+        {tab === "Documents" && <Documents missions={missions} onOpen={open} />}
+        {selectedMission && (
+          <MissionPanel
+            mission={selectedMission}
+            role={role}
+            pilots={pilots}
+            drones={drones}
+            blockers={deriveBlockers(selectedMission)}
+            onClose={() => setSelected(null)}
+            onPatch={patchMission}
+            onDocument={addDocument}
+            onRemoveDocument={removeDocument}
+            onAuthorization={addAuthorization}
+            onUpdateAuthorization={updateAuthorization}
+            onIncident={addIncident}
+            onPostflight={submitPostflight}
+            onCloseMission={closeMission}
+            onReadiness={setReadiness}
+            notify={notify}
+          />
+        )}
+        {modal === "pilot" && (
+          <PilotForm
+            onClose={() => setModal(null)}
+            onSave={(input) => {
+              const r = addPilot(input);
+              if (r.error) return r.error;
+              setModal(null);
+              notify(
+                "Pilot created successfully and is available for assignment.",
+              );
+            }}
+          />
+        )}
+        {modal === "mission" && (
+          <MissionForm
+            pilots={pilots}
+            drones={drones}
+            onClose={() => setModal(null)}
+            onSave={(input) => {
+              const r = createMission(input);
+              if (r.error) return r.error;
+              setModal(null);
+              notify("Mission created; assignment is awaiting pilot response.");
+            }}
+          />
+        )}
+        {modal?.type === "credential" && (
+          <CredentialForm
+            pilotId={modal.pilotId}
+            onClose={() => setModal(null)}
+            onSave={(input) => {
+              addCredential(modal.pilotId, input);
+              setModal(null);
+              notify("Credential recorded.");
+            }}
+          />
+        )}
+      </main>
+    </div>
+  );
+}
+function Overview({
+  missions,
+  allMissions,
+  pilots,
+  drones,
+  role,
+  deriveBlockers,
+  onOpen,
+  onReminder,
+}) {
+  const queues = allMissions.flatMap((m) =>
+    deriveBlockers(m).map((b) => ({ ...b, mission: m })),
+  );
+  const pending = allMissions.filter(
+    (m) => m.assignmentStatus === "Awaiting Acceptance",
+  );
+  const expiring = pilots.flatMap((p) =>
+    [...(p.certificates || []), ...(p.insurance || [])]
+      .filter(
+        (c) =>
+          c.expiryDate &&
+          (new Date(c.expiryDate) - new Date()) / 86400000 <= 30,
+      )
+      .map(
+        (c) =>
+          `${p.name}: ${c.name || c.provider || "record"} expires ${c.expiryDate}`,
+      ),
+  );
+  return (
+    <section className="section-view">
+      <div className="metric-grid">
+        <Metric
+          label="Active missions"
+          value={
+            missions.filter((m) => !["Closed", "Flown"].includes(m.status))
+              .length
+          }
+        />
+        <Metric label="Awaiting response" value={pending.length} />
+        <Metric
+          label="Blocking items"
+          value={queues.filter((b) => b.severity === "blocking").length}
+        />
+        <Metric label="Expiring records" value={expiring.length} />
+      </div>
+      <div className="content-grid">
+        <section className="card table-card">
+          <div className="table-header">
+            <div>
+              <h2>
+                {role === "pilot" ? "Your assignments" : "Operational queue"}
+              </h2>
+              <span>Derived from shared mission state</span>
+            </div>
+          </div>
+          {missions.length === 0 ? (
+            <Empty text="No missions yet." />
+          ) : (
+            missions.map((m) => (
+              <MissionCard
+                key={m.id}
+                mission={m}
+                blockers={deriveBlockers(m)}
+                onOpen={onOpen}
+              />
+            ))
+          )}
+        </section>
+        <aside className="right-column">
+          <section className="card attention-card">
+            <h2>Actionable blockers</h2>
+            {queues.slice(0, 8).map((b) => (
+              <button
+                className="attention-item"
+                key={`${b.mission.id}-${b.id}`}
+                onClick={() => onOpen(b.mission)}
+              >
+                <AlertTriangle />
+                <span>
+                  <strong>{b.description}</strong>
+                  <small>
+                    {b.mission.title} · Owner: {b.owner}
+                  </small>
+                </span>
+              </button>
+            ))}
+            {queues.length === 0 && <Empty text="No blockers." />}
+          </section>
+          <section className="card attention-card">
+            <h2>Awaiting response</h2>
+            {pending.map((m) => (
+              <div className="attention-item" key={m.id}>
+                <span>
+                  <strong>{m.title}</strong>
+                  <small>
+                    {m.responseDeadline
+                      ? `Deadline ${dateText(m.responseDeadline)}`
+                      : "No deadline"}
+                  </small>
+                </span>
+                <button onClick={() => onReminder(m.id)}>Send reminder</button>
+              </div>
+            ))}
+            {pending.length === 0 && <Empty text="No pending responses." />}
+          </section>
+        </aside>
+      </div>
+    </section>
+  );
+}
+function MissionList({
+  missions,
+  pilots,
+  drones,
+  role,
+  deriveBlockers,
+  onOpen,
+  onRespond,
+  onReminder,
+}) {
+  return (
+    <section className="section-view">
+      <div className="card table-card">
+        <div className="table-header">
+          <div>
+            <h2>Missions</h2>
+            <span>
+              {missions.length} records ·{" "}
+              {role === "pilot"
+                ? "filtered to your assignments"
+                : "coordinator view"}
+            </span>
+          </div>
+        </div>
+        {missions.map((m) => (
+          <div className="table-row" key={m.id}>
+            <div>
+              <strong>{m.title}</strong>
+              <small>
+                {m.location} · {m.date} · Pilot:{" "}
+                {pilots.find((p) => p.id === m.assignedPilotId)?.name ||
+                  "Unassigned"}{" "}
+                · Drone:{" "}
+                {drones.find((d) => d.id === m.droneId)?.model || "Unassigned"}
+              </small>
+              <small>
+                Assignment: {m.assignmentStatus} · {deriveBlockers(m).length}{" "}
+                blockers
+              </small>
+            </div>
+            <div className="row-buttons">
+              <button onClick={() => onOpen(m)}>Open record</button>
+              {role === "pilot" &&
+                m.assignmentStatus === "Awaiting Acceptance" && (
+                  <>
+                    <button
+                      className="primary-button"
+                      onClick={() => onRespond(m.id, "accepted")}
+                    >
+                      Accept
+                    </button>
+                    <button
+                      onClick={() =>
+                        onRespond(m.id, "declined", "Operational conflict")
+                      }
+                    >
+                      Decline
+                    </button>
+                  </>
+                )}
+              {role === "coordinator" &&
+                m.assignmentStatus === "Awaiting Acceptance" && (
+                  <button onClick={() => onReminder(m.id)}>Remind</button>
+                )}
+            </div>
+          </div>
+        ))}
+        {missions.length === 0 && <Empty text="No assignments found." />}
+      </div>
+    </section>
+  );
+}
+function PilotList({ pilots, onAdd, onCredential }) {
+  return (
+    <section className="section-view">
+      <div className="card table-card">
+        <div className="table-header">
+          <div>
+            <h2>Pilots</h2>
+            <span>{pilots.length} registered pilots</span>
+          </div>
+          <button className="primary-button" onClick={onAdd}>
+            <Plus /> Add pilot
+          </button>
+        </div>
+        {pilots.map((p) => (
+          <div className="table-row" key={p.id}>
+            <div>
+              <strong>{p.name}</strong>
+              <small>
+                {p.email} · ID {p.id}
+              </small>
+            </div>
+            <span className="status-pill status-neutral">
+              {p.approvalStatus}
+            </span>
+            <button onClick={() => onCredential(p.id)}>
+              Record credential
+            </button>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+function Documents({ missions, onOpen }) {
+  return (
+    <section className="section-view">
+      <div className="card table-card">
+        <div className="table-header">
+          <div>
+            <h2>Mission documents</h2>
+            <span>Metadata-only prototype attachments</span>
+          </div>
+        </div>
+        {missions.flatMap((m) =>
+          (m.documents || []).map((d) => (
+            <button className="table-row" key={d.id} onClick={() => onOpen(m)}>
+              <span>
+                <FileText /> {d.filename}
+              </span>
+              <small>
+                {m.title} · {d.documentType} · {d.uploader}
+              </small>
+            </button>
+          )),
+        )}
+        {missions.every((m) => !m.documents?.length) && (
+          <Empty text="No document metadata has been added." />
+        )}
+      </div>
+    </section>
+  );
+}
+function ZoneReview({ mission, onCheck, onNotify }) {
+  const [latitude, setLatitude] = useState(mission.zoneCheck?.latitude ?? "");
+  const [longitude, setLongitude] = useState(
+    mission.zoneCheck?.longitude ?? "",
+  );
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const result = mission.zoneCheck;
+  async function submit(e) {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    const response = await onCheck(mission.id, latitude, longitude);
+    setLoading(false);
+    if (response?.error && !response.result) setError(response.error);
+    else onNotify(response?.result?.message || "Zone check recorded.");
+  }
+  return (
+    <section className="zone-review detail-section">
+      <div className="detail-section-heading">
+        <strong>Romanian airspace review</strong>
+        <small>
+          Published snapshot point check only — not live data, not complete
+          coverage, and never a clearance to fly.
+        </small>
+      </div>
+      <form className="detail-form zone-form" onSubmit={submit}>
+        <label>
+          Latitude
+          <input
+            inputMode="decimal"
+            aria-label="Mission latitude"
+            value={latitude}
+            onChange={(e) => setLatitude(e.target.value)}
+            placeholder="44.470277"
+            required
+          />
+        </label>
+        <label>
+          Longitude
+          <input
+            inputMode="decimal"
+            aria-label="Mission longitude"
+            value={longitude}
+            onChange={(e) => setLongitude(e.target.value)}
+            placeholder="26.067932"
+            required
+          />
+        </label>
+        <button className="secondary-button" type="submit" disabled={loading}>
+          {loading ? "Checking…" : "Check published zones"}
+        </button>
+      </form>
+      {error && <p className="form-error">{error}</p>}
+      {result && (
+        <div className={`zone-result zone-${result.status}`}>
+          <strong>{result.message}</strong>
+          {result.status === "overlap" &&
+            result.matches?.map((zone) => (
+              <div className="zone-match" key={zone.id}>
+                <b>{zone.id}</b>
+                <span>
+                  {zone.status} · {zone.lowerLimit} to {zone.upperLimit}
+                </span>
+                <small>{zone.contact}</small>
+              </div>
+            ))}
+          <small>
+            Point check at {result.latitude ?? "not recorded"},{" "}
+            {result.longitude ?? "not recorded"}. Snapshot imported{" "}
+            {result.importedAt
+              ? new Date(result.importedAt).toLocaleString()
+              : "date unavailable"}
+            .
+          </small>
+          <a
+            href={result.mapUrl || "https://flightplan.romatsa.ro/init/drones"}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Open official ROMATSA map
+          </a>
+        </div>
+      )}
+    </section>
+  );
+}
+function MissionForm({ pilots, drones, onClose, onSave }) {
+  const [form, setForm] = useState({
+    title: "",
+    client: "",
+    location: "",
+    date: "",
+    startTime: "",
+    endTime: "",
+    assignedPilotId: pilots[0]?.id || "",
+    droneId: drones[0]?.id || "",
+    requirementsAssessment: "Not assessed",
+  });
+  const [error, setError] = useState("");
+  const set = (key) => (e) => setForm({ ...form, [key]: e.target.value });
+  const submit = (e, saveDraft = false) => {
+    e.preventDefault();
+    const result = onSave({ ...form, saveDraft });
+    if (result?.error) setError(result.error);
+  };
+  return (
+    <Modal title="Create mission" onClose={onClose}>
+      <form onSubmit={submit} className="form-grid">
+        {[
+          ["title", "Mission title"],
+          ["client", "Client"],
+          ["location", "Location"],
+          ["date", "Date"],
+          ["startTime", "Start time"],
+          ["endTime", "End time"],
+        ].map(([key, label]) => (
+          <label key={key}>
+            {label}
+            <input
+              type={
+                key === "date" ? "date" : key.includes("Time") ? "time" : "text"
+              }
+              value={form[key]}
+              onChange={set(key)}
+            />
+          </label>
+        ))}
+        <label>
+          Pilot
+          <select
+            value={form.assignedPilotId}
+            onChange={set("assignedPilotId")}
+          >
+            {pilots.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name} · {p.availability}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Drone
+          <select value={form.droneId} onChange={set("droneId")}>
+            {drones.map((d) => (
+              <option key={d.id} value={d.id}>
+                {d.model}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          External requirement
+          <select
+            value={form.requirementsAssessment}
+            onChange={set("requirementsAssessment")}
+          >
+            <option>Not assessed</option>
+            <option>Not applicable</option>
+            <option>Assessed</option>
+          </select>
+        </label>
+        {error && (
+          <div className="form-error" role="alert">
+            {error}
+          </div>
+        )}
+        <div className="modal-actions">
+          <button type="button" onClick={onClose}>
+            Cancel
+          </button>
+          <button type="button" onClick={(e) => submit(e, true)}>
+            Save draft
+          </button>
+          <button className="primary-button">Create mission</button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+function MissionPanel({
+  mission,
+  role,
+  pilots,
+  drones,
+  blockers,
+  onClose,
+  onPatch,
+  onDocument,
+  onRemoveDocument,
+  onAuthorization,
+  onUpdateAuthorization,
+  onIncident,
+  onPostflight,
+  onCloseMission,
+  onReadiness,
+  notify,
+}) {
+  const { checkMissionZone } = useApp();
+  const panelRef = useRef(null);
+  useEffect(() => {
+    panelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [mission.id]);
+  const [doc, setDoc] = useState({ documentType: "Evidence", filename: "" });
+  const [auth, setAuth] = useState({
+    authority: "",
+    requirement: "",
+    status: "Pending",
+    evidenceFilename: "",
+    conditions: "",
+    simulated: false,
+  });
+  const [report, setReport] = useState("");
+  const pilot = pilots.find((p) => p.id === mission.assignedPilotId);
+  const drone = drones.find((d) => d.id === mission.droneId);
+  return (
+    <div className="detail-panel" ref={panelRef}>
+      <div className="detail-heading">
+        <div>
+          <p className="eyebrow">Central mission record</p>
+          <h2>{mission.title}</h2>
+          <p>
+            {mission.client} · {mission.location} · {mission.date} ·{" "}
+            {mission.startTime || mission.time || ""}
+          </p>
+        </div>
+        <button
+          className="icon-button"
+          onClick={onClose}
+          aria-label="Close mission record"
+        >
+          <X />
+        </button>
+      </div>
+      <ZoneReview
+        mission={mission}
+        onCheck={checkMissionZone}
+        onNotify={notify}
+      />
+      <div className="detail-grid">
+        <section>
+          <h3>Assignment</h3>
+          <p>Pilot: {pilot?.name || "Unassigned"}</p>
+          <p>Drone: {drone?.model || "Unassigned"}</p>
+          <p>Status: {mission.assignmentStatus}</p>
+          <p>Deadline: {dateText(mission.responseDeadline)}</p>
+        </section>
+        <section>
+          <h3>Readiness</h3>
+          {blockers.map((b) => (
+            <div className={`blocker ${b.severity}`} key={b.id}>
+              <AlertTriangle />{" "}
+              <span>
+                {b.description}
+                <small>Owner: {b.owner}</small>
+              </span>
+            </div>
+          ))}
+          {!blockers.length && (
+            <p className="success-copy">
+              <Check /> No derived blockers
+            </p>
+          )}
+          <label className="check-row">
+            <input
+              type="checkbox"
+              checked={mission.readinessChecks?.preflight || false}
+              onChange={(e) =>
+                onPatch(
+                  mission.id,
+                  {
+                    readinessChecks: {
+                      ...mission.readinessChecks,
+                      preflight: e.target.checked,
+                    },
+                  },
+                  "Preflight check updated",
+                  role === "pilot" ? pilot?.name : "Coordinator",
+                )
+              }
+            />{" "}
+            Preflight check complete
+          </label>
+          <button
+            className="primary-button"
+            disabled={blockers.some((b) => b.severity === "blocking")}
+            onClick={() => {
+              const r = onReadiness(
+                mission.id,
+                role === "pilot" ? pilot?.name : "Coordinator",
+              );
+              notify(r?.error || "Readiness confirmed.");
+            }}
+          >
+            Confirm internal readiness
+          </button>
+          {mission.readinessConfirmation && (
+            <p className="success-copy">
+              Confirmed by {mission.readinessConfirmation.actor} at{" "}
+              {dateText(mission.readinessConfirmation.timestamp)}
+            </p>
+          )}
+        </section>
+      </div>
+      <section className="detail-section">
+        <h3>Documents</h3>
+        <small>
+          Metadata-only placeholders. File contents are not stored or claimed
+          persistent.
+        </small>
+        {(mission.documents || []).map((d) => (
+          <div className="detail-item" key={d.id}>
+            <span>
+              {d.documentType} · {d.filename}
+            </span>
+            <button onClick={() => onRemoveDocument(mission.id, d.id)}>
+              Remove
+            </button>
+          </div>
+        ))}
+        <form
+          className="inline-form"
+          onSubmit={(e) => {
+            e.preventDefault();
+            onDocument(mission.id, doc);
+            setDoc({ documentType: "Evidence", filename: "" });
+            notify("Document metadata added.");
+          }}
+        >
+          <select
+            value={doc.documentType}
+            onChange={(e) => setDoc({ ...doc, documentType: e.target.value })}
+          >
+            <option>Evidence</option>
+            <option>Brief</option>
+            <option>Insurance</option>
+            <option>Other</option>
+          </select>
+          <input
+            required
+            placeholder="Filename or reference"
+            value={doc.filename}
+            onChange={(e) => setDoc({ ...doc, filename: e.target.value })}
+          />
+          <button>Add</button>
+        </form>
+      </section>
+      <section className="detail-section">
+        <h3>External authorizations</h3>
+        <small>
+          Authority simulation is clearly non-official and cannot satisfy
+          evidence requirements.
+        </small>
+        {(mission.authorizations || []).map((a) => (
+          <div className="detail-item" key={a.id}>
+            <span>
+              {a.authority || "Authority"} · {a.status}
+              {a.simulated ? " · SIMULATED" : ""}
+            </span>
+            <div>
+              <button
+                onClick={() =>
+                  onUpdateAuthorization(
+                    mission.id,
+                    a.id,
+                    { conditionsAcknowledgedByCoordinator: true },
+                    "Coordinator",
+                  )
+                }
+              >
+                Coordinator acknowledged
+              </button>
+              {role === "pilot" && (
+                <button
+                  onClick={() =>
+                    onUpdateAuthorization(
+                      mission.id,
+                      a.id,
+                      { conditionsAcknowledgedByPilot: true },
+                      pilot?.name,
+                    )
+                  }
+                >
+                  Pilot acknowledged
+                </button>
+              )}
+            </div>
+          </div>
+        ))}
+        <form
+          className="form-grid compact"
+          onSubmit={(e) => {
+            e.preventDefault();
+            onAuthorization(mission.id, auth);
+            setAuth({
+              authority: "",
+              requirement: "",
+              status: "Pending",
+              evidenceFilename: "",
+              conditions: "",
+              simulated: false,
+            });
+            notify("Authorization record added.");
+          }}
+        >
+          <input
+            required
+            placeholder="Authority / organization"
+            value={auth.authority}
+            onChange={(e) => setAuth({ ...auth, authority: e.target.value })}
+          />
+          <input
+            placeholder="Evidence filename"
+            value={auth.evidenceFilename}
+            onChange={(e) =>
+              setAuth({ ...auth, evidenceFilename: e.target.value })
+            }
+          />
+          <select
+            value={auth.status}
+            onChange={(e) => setAuth({ ...auth, status: e.target.value })}
+          >
+            <option>Pending</option>
+            <option>Approved</option>
+            <option>Rejected</option>
+            <option>More Information Required</option>
+          </select>
+          <label className="check-row">
+            <input
+              type="checkbox"
+              checked={auth.simulated}
+              onChange={(e) =>
+                setAuth({ ...auth, simulated: e.target.checked })
+              }
+            />{" "}
+            Simulation only
+          </label>
+          <button className="secondary-button">Add authorization</button>
+        </form>
+      </section>
+      <section className="detail-section">
+        <h3>Postflight and incidents</h3>
+        {mission.postflightReport ? (
+          <p className="success-copy">
+            Report submitted {dateText(mission.postflightReport.submittedAt)} ·{" "}
+            {mission.status}
+          </p>
+        ) : (
+          <form
+            className="inline-form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              onPostflight(
+                mission.id,
+                { summary: report },
+                role === "pilot" ? pilot?.name : "Coordinator",
+              );
+              notify("Postflight report submitted.");
+            }}
+          >
+            <input
+              required
+              placeholder="Flight completion summary"
+              value={report}
+              onChange={(e) => setReport(e.target.value)}
+            />
+            <button>Submit report</button>
+          </form>
+        )}
+        {mission.incidents?.map((i) => (
+          <p key={i.id}>Incident: {i.description}</p>
+        ))}
+        {role === "pilot" && (
+          <button
+            onClick={() =>
+              onIncident(
+                mission.id,
+                { description: "Operational incident recorded by pilot" },
+                pilot?.name,
+              )
+            }
+          >
+            Report incident
+          </button>
+        )}
+        {role === "coordinator" && mission.postflightReport && (
+          <button
+            className="primary-button"
+            onClick={() => {
+              onCloseMission(mission.id);
+              notify("Mission closed.");
+            }}
+          >
+            Close mission
+          </button>
+        )}
+      </section>
+    </div>
+  );
+}
+export default App;
